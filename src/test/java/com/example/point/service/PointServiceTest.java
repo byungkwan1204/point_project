@@ -13,6 +13,7 @@ import com.example.point.domain.model.PointHistory;
 import com.example.point.domain.model.PointHistoryActionType;
 import com.example.point.domain.model.PointRewardType;
 import com.example.point.domain.model.PointStatus;
+import com.example.point.global.PointProperties;
 import com.example.point.presentation.request.PointCreateRequest;
 import com.example.point.presentation.request.PointUseCancelRequest;
 import com.example.point.presentation.request.PointUseRequest;
@@ -55,6 +56,9 @@ class PointServiceTest {
     @Mock
     ObjectMapper objectMapper;
 
+    @Mock
+    PointProperties pointProperties;
+
     @InjectMocks
     PointService pointService;
 
@@ -73,6 +77,7 @@ class PointServiceTest {
 
         PointCreateRequest request = new PointCreateRequest(1L, 1000, expiredAt, PointRewardType.MANUAL);
 
+        given(pointProperties.getMaxFreeAmount()).willReturn(100000);
         given(pointRepository.save(any())).willReturn(newPoint);
 
         ReflectionTestUtils.setField(newPoint, "pointKey", 1L);
@@ -194,7 +199,7 @@ class PointServiceTest {
 
         // given
         Point usePoint =
-            Point.create(new PointCreateRequest(1L, 1000, LocalDateTime.now().plusDays(30), PointRewardType.MANUAL));
+            Point.create(new PointCreateRequest(1L, 1000, LocalDateTime.now().plusDays(30), PointRewardType.MANUAL), 100000);
 
         usePoint.use(500);
 
@@ -253,6 +258,7 @@ class PointServiceTest {
         List<PointHistory> pointHistories = new ArrayList<>();
         pointHistories.add(expiredPointHistory);
 
+        given(pointProperties.getMaxFreeAmount()).willReturn(100000);
         given(pointHistoryRepository.findAllUsedByOrderKey(any())).willReturn(pointHistories);
         given(pointRepository.save(any())).willReturn(activePoint);
 

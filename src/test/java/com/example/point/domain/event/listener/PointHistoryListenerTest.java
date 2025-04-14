@@ -1,6 +1,7 @@
 package com.example.point.domain.event.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.example.point.domain.event.trigger.PointHistoryEvent;
@@ -10,7 +11,9 @@ import com.example.point.domain.model.PointHistoryActionType;
 import com.example.point.domain.model.PointRewardType;
 import com.example.point.domain.model.PointStatus;
 import com.example.point.service.port.PointHistoryRepository;
+import com.example.point.service.port.PointRepository;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +27,10 @@ class PointHistoryListenerTest {
 
     @Mock
     PointHistoryRepository pointHistoryRepository;
-    
+
+    @Mock
+    PointRepository pointRepository;
+
     @InjectMocks
     PointHistoryListener pointHistoryListener;
     
@@ -44,6 +50,8 @@ class PointHistoryListenerTest {
             .build();
 
         PointHistoryEvent event = PointHistoryEvent.save(point.getPointKey(), 1000);
+
+        given(pointRepository.findByPointKey(event.pointKey())).willReturn(Optional.of(point));
 
         // when
         pointHistoryListener.listen(event);
@@ -77,6 +85,8 @@ class PointHistoryListenerTest {
 
         PointHistoryEvent event = PointHistoryEvent.saveCancel(point.getPointKey(), 1000, 1L);
 
+        given(pointRepository.findByPointKey(event.pointKey())).willReturn(Optional.of(point));
+
         // when
         pointHistoryListener.listen(event);
 
@@ -109,6 +119,8 @@ class PointHistoryListenerTest {
         Long orderKey = 1234L;
 
         PointHistoryEvent event = PointHistoryEvent.use(point.getPointKey(), 600, orderKey);
+
+        given(pointRepository.findByPointKey(event.pointKey())).willReturn(Optional.of(point));
 
         // when
         pointHistoryListener.listen(event);
@@ -144,6 +156,8 @@ class PointHistoryListenerTest {
 
         PointHistoryEvent event = PointHistoryEvent.useCancel(point.getPointKey(), 600, relatedHistoryKey, orderKey);
 
+        given(pointRepository.findByPointKey(event.pointKey())).willReturn(Optional.of(point));
+
         // when
         pointHistoryListener.listen(event);
 
@@ -175,6 +189,8 @@ class PointHistoryListenerTest {
             .build();
 
         PointHistoryEvent event = PointHistoryEvent.expired(point.getPointKey(), point.getRemainAmount());
+
+        given(pointRepository.findByPointKey(event.pointKey())).willReturn(Optional.of(point));
 
         // when
         pointHistoryListener.listen(event);

@@ -12,6 +12,8 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 class PointTest {
 
+    int maxFreeAmount = 100000;
+
     @DisplayName("포인트 적립 시 1포인트 이상, 10만 포인트 이하로만 적립 가능하다.")
     @Test
     void canCreatePointWithinLimit() {
@@ -21,11 +23,11 @@ class PointTest {
         PointCreateRequest pointCreateRequest2 = createPointCommand(100001, LocalDateTime.now().plusDays(30));
 
         // when && then
-        assertThatThrownBy(() -> Point.create(pointCreateRequest1))
+        assertThatThrownBy(() -> Point.create(pointCreateRequest1, maxFreeAmount))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("적립 포인트는 1 이상만 가능합니다.");
 
-        assertThatThrownBy(() -> Point.create(pointCreateRequest2))
+        assertThatThrownBy(() -> Point.create(pointCreateRequest2, maxFreeAmount))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("적립 포인트는 100,000 이하만 가능합니다.");
     }
@@ -39,11 +41,11 @@ class PointTest {
         PointCreateRequest pointCreateRequest2 = createPointCommand(1000, LocalDateTime.now().plusYears(5).plusDays(1));
 
         // when && then
-        assertThatThrownBy(() -> Point.create(pointCreateRequest1))
+        assertThatThrownBy(() -> Point.create(pointCreateRequest1, maxFreeAmount))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("만료일은 최소 1일 이상만 가능합니다.");
 
-        assertThatThrownBy(() -> Point.create(pointCreateRequest2))
+        assertThatThrownBy(() -> Point.create(pointCreateRequest2, maxFreeAmount))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("만료일은 5년 이내만 가능합니다.");
     }
@@ -54,7 +56,7 @@ class PointTest {
 
         // given
         PointCreateRequest pointCreateRequest = createPointCommand(1000, LocalDateTime.now().plusDays(30));
-        Point point = Point.create(pointCreateRequest);
+        Point point = Point.create(pointCreateRequest, maxFreeAmount);
 
         // when
         point.cancel();
@@ -115,7 +117,7 @@ class PointTest {
 
         // given
         PointCreateRequest pointCreateRequest = createPointCommand(1000, LocalDateTime.now().plusDays(30));
-        Point point = Point.create(pointCreateRequest);
+        Point point = Point.create(pointCreateRequest, maxFreeAmount);
 
         // when && then
         assertThatThrownBy(() -> point.use(1100))

@@ -37,10 +37,10 @@ public class Point {
     /**
      * <b> </b>
      */
-    public static Point create(PointCreateRequest pointCreateRequest) {
+    public static Point create(PointCreateRequest pointCreateRequest, int maxFreeAmount) {
 
         // 금액 유효성 검증 (1 <= 0 <= 100000)
-        validDateTotalAmount(pointCreateRequest.amount());
+        validDateTotalAmount(pointCreateRequest.amount(), maxFreeAmount);
 
         // 만료일 유효성 검증 (1일 이상, 5년 미만)
         if (pointCreateRequest.expiredAt() != null) {
@@ -115,12 +115,12 @@ public class Point {
     }
 
     // 금액 유효성 검증 (1 <= 0 <= 100000)
-    private static void validDateTotalAmount(int totalAmount) {
+    private static void validDateTotalAmount(int totalAmount, int maxFreeAmount) {
         if (totalAmount < 1) {
             throw new IllegalArgumentException("적립 포인트는 1 이상만 가능합니다.");
         }
 
-        if (totalAmount > 100000) {
+        if (totalAmount > maxFreeAmount) {
             throw new IllegalArgumentException("적립 포인트는 100,000 이하만 가능합니다.");
         }
     }

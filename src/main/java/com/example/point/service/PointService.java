@@ -6,6 +6,7 @@ import com.example.point.domain.model.PointHistory;
 import com.example.point.domain.model.PointOutbox;
 import com.example.point.domain.model.PointOutboxType;
 import com.example.point.domain.model.PointRewardType;
+import com.example.point.global.PointProperties;
 import com.example.point.presentation.request.PointCreateRequest;
 import com.example.point.presentation.request.PointUseCancelRequest;
 import com.example.point.presentation.request.PointUseRequest;
@@ -32,13 +33,15 @@ public class PointService implements PointUsecase {
     private final PointOutboxRepository pointOutboxRepository;
     private final ApplicationEventPublisher eventPublisher;
 
+    private final PointProperties pointProperties;
+
     private final ObjectMapper objectMapper;
 
     @Transactional
     @Override
     public PointResponse savePoint(PointCreateRequest pointCreateRequest) throws Exception {
 
-        Point newPoint = pointRepository.save(Point.create(pointCreateRequest));
+        Point newPoint = pointRepository.save(Point.create(pointCreateRequest, pointProperties.getMaxFreeAmount()));
 
         // 포인트 적립 이벤트 발행 내용 DB 저장
         pointOutboxRepository.save(PointOutbox.create(PointOutboxType.POINT_SAVE, objectMapper.writeValueAsString(newPoint)));
@@ -147,7 +150,7 @@ public class PointService implements PointUsecase {
             if (usedPoint.isExpired()) {
 
                 Point recreatePoint =
-                    Point.create(new PointCreateRequest(usedPoint.getUserKey(), usedHistory.getAmount(), null, PointRewardType.OTHER));
+                    Point.create(new PointCreateRequest(usedPoint.getUserKey(), usedHistory.getAmount(), null, PointRewardType.OTHER), pointProperties.getMaxFreeAmount());
 
                 Point savedPoint = pointRepository.save(recreatePoint);
 
