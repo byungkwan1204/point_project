@@ -15,14 +15,14 @@ public class PointRepositoryImpl implements PointRepository {
     private final PointJpaRepository jpaRepository;
 
     @Override
-    public Optional<Point> findById(Long key) {
-        return jpaRepository.findById(key)
+    public Optional<Point> findByPointKey(Long pointKey) {
+        return jpaRepository.findByPointKey(pointKey)
             .map(PointEntity::toDomain);
     }
 
     @Override
-    public List<Point> findUsablePointsByUserKey(Long userKey) {
-        return jpaRepository.findUsablePointsByUserKey(userKey).stream()
+    public List<Point> findActivatePointsByUserKey(Long userKey) {
+        return jpaRepository.findActivatePointsByUserKey(userKey).stream()
             .map(PointEntity::toDomain)
             .collect(Collectors.toList());
     }
@@ -33,17 +33,5 @@ public class PointRepositoryImpl implements PointRepository {
         PointEntity savedPoint = jpaRepository.save(PointEntity.fromDomain(point));
 
         return savedPoint.toDomain();
-    }
-
-    @Override
-    public List<Point> findAll() {
-        return jpaRepository.findAll().stream()
-            .map(PointEntity::toDomain)
-            .collect(Collectors.toList());
-    }
-
-    @Override
-    public void deleteAll() {
-        jpaRepository.deleteAll();
     }
 }

@@ -60,6 +60,11 @@ public class Point {
     }
 
     public void cancel() {
+
+        if (isNotActive()) {
+            throw new IllegalArgumentException("비활성 포인트는 취소할 수 없습니다.");
+        }
+
         if (this.remainAmount != this.totalAmount) {
             throw new IllegalArgumentException("이미 사용된 포인트는 취소할 수 없습니다.");
         }
@@ -69,7 +74,8 @@ public class Point {
     }
 
     public void use(int useAmount) {
-        if (this.status != PointStatus.ACTIVE) {
+
+        if (isNotActive()) {
             throw new IllegalArgumentException("비활성 포인트는 사용할 수 없습니다.");
         }
 
@@ -101,6 +107,11 @@ public class Point {
     @JsonIgnore
     public boolean isCanceled() {
         return this.status == PointStatus.CANCELED;
+    }
+
+    @JsonIgnore
+    public boolean isNotActive() {
+        return isExpired() || isCanceled();
     }
 
     // 금액 유효성 검증 (1 <= 0 <= 100000)

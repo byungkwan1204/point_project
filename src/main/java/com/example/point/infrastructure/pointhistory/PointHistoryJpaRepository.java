@@ -1,26 +1,24 @@
 package com.example.point.infrastructure.pointhistory;
 
+import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 public interface PointHistoryJpaRepository extends JpaRepository<PointHistoryEntity, Long> {
 
-    @Query("select ph from PointHistoryEntity ph join fetch ph.point p " +
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select ph from PointHistoryEntity ph " +
            "where ph.actionType = 'USE' " +
            "and ph.orderKey = :orderKey")
     List<PointHistoryEntity> findAllUsageByOrderKey(Long orderKey);
 
-    @Query("select ph from PointHistoryEntity ph join fetch ph.point p " +
-           "where p.status = 'ACTIVE' " +
-           "and ph.actionType = 'SAVE' " +
-           "and p.pointKey = :pointKey")
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select ph from PointHistoryEntity ph " +
+           "where ph.point.pointKey = :pointKey " +
+           "and ph.point.status = 'ACTIVE' " +
+           "and ph.actionType = 'SAVE'")
     Optional<PointHistoryEntity> findSavedByPointKey(Long pointKey);
-
-    @Query("select ph from PointHistoryEntity ph join fetch ph.point p " +
-           "where p.status = 'CANCELED' " +
-           "and ph.actionType = 'SAVE_CANCEL' " +
-           "and p.pointKey = :pointKey")
-    Optional<PointHistoryEntity> findSaveCanceledByPointKey(Long pointKey);
 }

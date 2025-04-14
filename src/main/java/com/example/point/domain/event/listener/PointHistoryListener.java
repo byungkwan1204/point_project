@@ -23,7 +23,7 @@ public class PointHistoryListener {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void listen(PointHistoryEvent event) {
 
-        Point point = pointRepository.findById(event.pointKey())
+        Point point = pointRepository.findByPointKey(event.pointKey())
             .orElseThrow(() -> new IllegalArgumentException("포인트가 존재하지 않습니다."));
 
         pointHistoryRepository.save(createHistory(point, event));

@@ -6,14 +6,10 @@ import java.util.Optional;
 
 public interface PointRepository {
 
-    Optional<Point> findById(Long key);
+    Optional<Point> findByPointKey(Long key);
 
-    List<Point> findUsablePointsByUserKey(Long userKey);
+    List<Point> findActivatePointsByUserKey(Long userKey);
 
     Point save(Point point);
-
-    List<Point> findAll();
-
-    void deleteAll();
 
 }

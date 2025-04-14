@@ -11,5 +11,4 @@ public interface PointHistoryRepository {
     Optional<PointHistory> findSavedByPointKey(Long pointKey);
 
     PointHistory save(PointHistory pointHistory);
-
 }

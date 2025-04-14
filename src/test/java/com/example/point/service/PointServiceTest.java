@@ -18,7 +18,9 @@ import com.example.point.presentation.request.PointUseCancelRequest;
 import com.example.point.presentation.request.PointUseRequest;
 import com.example.point.presentation.response.PointResponse;
 import com.example.point.service.port.PointHistoryRepository;
+import com.example.point.service.port.PointOutboxRepository;
 import com.example.point.service.port.PointRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +47,13 @@ class PointServiceTest {
     PointHistoryRepository pointHistoryRepository;
 
     @Mock
+    PointOutboxRepository pointOutboxRepository;
+
+    @Mock
     ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    ObjectMapper objectMapper;
 
     @InjectMocks
     PointService pointService;
@@ -129,7 +137,7 @@ class PointServiceTest {
 
         PointUseRequest useRequest = new PointUseRequest(1L, 1234L, 600);
 
-        given(pointRepository.findUsablePointsByUserKey(anyLong()))
+        given(pointRepository.findActivatePointsByUserKey(anyLong()))
             .willReturn(points);
 
         // when
@@ -167,7 +175,7 @@ class PointServiceTest {
 
         PointUseRequest useRequest = new PointUseRequest(1L, 1234L, 1300);
 
-        given(pointRepository.findUsablePointsByUserKey(anyLong())).willReturn(points);
+        given(pointRepository.findActivatePointsByUserKey(anyLong())).willReturn(points);
 
         // when
         List<PointResponse> usePoints = pointService.usePoint(useRequest);

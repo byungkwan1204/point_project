@@ -54,7 +54,7 @@ public class PointService implements PointUsecase {
     public PointResponse saveCancelPoint(Long pointKey) throws Exception {
 
         PointHistory pointHistory = pointHistoryRepository.findSavedByPointKey(pointKey)
-            .orElseThrow(() -> new IllegalArgumentException("포인트가 적립된 이력이 없습니다."));
+            .orElseThrow(() -> new IllegalArgumentException("적립 이력이 존재하지 않습니다."));
 
         Point point = pointHistory.getPoint();
 
@@ -79,7 +79,7 @@ public class PointService implements PointUsecase {
 
         int totalUsePoint = pointUseRequest.amount();
 
-        List<Point> usablePoints = pointRepository.findUsablePointsByUserKey(pointUseRequest.userKey());
+        List<Point> usablePoints = pointRepository.findActivatePointsByUserKey(pointUseRequest.userKey());
 
         // 현재 사용 가능한 포인트
         int totalAvailablePoint = usablePoints.stream()
