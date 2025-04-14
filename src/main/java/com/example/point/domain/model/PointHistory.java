@@ -1,16 +1,17 @@
 package com.example.point.domain.model;
 
-import com.example.point.infrastructure.entity.PointEntity;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 public class PointHistory {
 
     private Long historyKey;

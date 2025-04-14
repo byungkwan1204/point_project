@@ -1,7 +1,6 @@
-package com.example.point.infrastructure.repository;
+package com.example.point.infrastructure.pointhistory;
 
 import com.example.point.domain.model.PointHistory;
-import com.example.point.infrastructure.entity.PointHistoryEntity;
 import com.example.point.service.port.PointHistoryRepository;
 import java.util.List;
 import java.util.Optional;
@@ -15,15 +14,15 @@ public class PointHistoryRepositoryImpl implements PointHistoryRepository {
     private final PointHistoryJpaRepository jpaRepository;
 
     @Override
-    public List<PointHistory> findAllUsageByOrderKey(Long orderKey) {
+    public List<PointHistory> findAllUsedByOrderKey(Long orderKey) {
         return jpaRepository.findAllUsageByOrderKey(orderKey).stream()
             .map(PointHistoryEntity::toDomain)
             .toList();
     }
 
     @Override
-    public Optional<PointHistory> findSaveByPointKey(Long pointKey) {
-        return jpaRepository.findSaveByPointKey(pointKey)
+    public Optional<PointHistory> findSavedByPointKey(Long pointKey) {
+        return jpaRepository.findSavedByPointKey(pointKey)
             .map(PointHistoryEntity::toDomain);
     }
 

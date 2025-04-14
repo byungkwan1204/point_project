@@ -1,19 +1,21 @@
 package com.example.point.domain.model;
 
 import com.example.point.presentation.request.PointCreateRequest;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.domain.AbstractAggregateRoot;
 
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 public class Point {
 
     private Long pointKey;
@@ -28,7 +30,7 @@ public class Point {
 
     private int remainAmount;
 
-    private LocalDateTime expiredDate;
+    private LocalDateTime expiredAt;
 
     private LocalDateTime createdAt;
 
@@ -41,8 +43,8 @@ public class Point {
         validDateTotalAmount(pointCreateRequest.amount());
 
         // 만료일 유효성 검증 (1일 이상, 5년 미만)
-        if (pointCreateRequest.expiredDate() != null) {
-            validateExpiredDate(pointCreateRequest.expiredDate());
+        if (pointCreateRequest.expiredAt() != null) {
+            validateExpiredAt(pointCreateRequest.expiredAt());
         }
 
         return Point.builder()
@@ -51,9 +53,9 @@ public class Point {
             .rewardType(pointCreateRequest.rewardType())
             .totalAmount(pointCreateRequest.amount())
             .remainAmount(pointCreateRequest.amount())
-            .expiredDate(
-                pointCreateRequest.expiredDate() == null ?
-                    LocalDateTime.now().plusDays(365) : pointCreateRequest.expiredDate())
+            .expiredAt(
+                pointCreateRequest.expiredAt() == null ?
+                    LocalDateTime.now().plusDays(365) : pointCreateRequest.expiredAt())
             .build();
     }
 
@@ -91,9 +93,12 @@ public class Point {
         this.remainAmount = 0;
     }
 
+    @JsonIgnore
     public boolean isExpired() {
-        return this.status == PointStatus.EXPIRED || LocalDateTime.now().isAfter(this.expiredDate);
+        return this.status == PointStatus.EXPIRED || LocalDateTime.now().isAfter(this.expiredAt);
     }
+
+    @JsonIgnore
     public boolean isCanceled() {
         return this.status == PointStatus.CANCELED;
     }
@@ -110,15 +115,15 @@ public class Point {
     }
 
     // 만료일 유효성 검증 (1일 이상, 5년 미만)
-    private static void validateExpiredDate(LocalDateTime expiredDate) {
+    private static void validateExpiredAt(LocalDateTime expiredAt) {
 
         LocalDateTime now = LocalDateTime.now();
 
-        if (ChronoUnit.DAYS.between(now, expiredDate) < 1) {
+        if (ChronoUnit.DAYS.between(now, expiredAt) < 1) {
             throw new IllegalArgumentException("만료일은 최소 1일 이상만 가능합니다.");
         }
 
-        if (expiredDate.isAfter(now.plusYears(5))) {
+        if (expiredAt.isAfter(now.plusYears(5))) {
             throw new IllegalArgumentException("만료일은 5년 이내만 가능합니다.");
         }
     }

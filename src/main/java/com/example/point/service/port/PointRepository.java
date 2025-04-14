@@ -12,4 +12,8 @@ public interface PointRepository {
 
     Point save(Point point);
 
+    List<Point> findAll();
+
+    void deleteAll();
+
 }

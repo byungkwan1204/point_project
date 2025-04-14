@@ -1,4 +1,4 @@
-package com.example.point.infrastructure.entity;
+package com.example.point.infrastructure.user;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

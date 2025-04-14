@@ -1,7 +1,6 @@
 package com.example.point.domain.event.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 
 import com.example.point.domain.event.trigger.PointHistoryEvent;
@@ -40,11 +39,11 @@ class PointHistoryListenerTest {
             .rewardType(PointRewardType.MANUAL)
             .totalAmount(1000)
             .remainAmount(1000)
-            .expiredDate(LocalDateTime.now().plusDays(30))
+            .expiredAt(LocalDateTime.now().plusDays(30))
             .createdAt(LocalDateTime.now())
             .build();
 
-        PointHistoryEvent event = new PointHistoryEvent(point, 1000, PointHistoryActionType.SAVE, null, null);
+        PointHistoryEvent event = PointHistoryEvent.save(point.getPointKey(), 1000);
 
         // when
         pointHistoryListener.listen(event);
@@ -70,13 +69,13 @@ class PointHistoryListenerTest {
             .rewardType(PointRewardType.MANUAL)
             .totalAmount(1000)
             .remainAmount(0)
-            .expiredDate(LocalDateTime.now().plusDays(30))
+            .expiredAt(LocalDateTime.now().plusDays(30))
             .createdAt(LocalDateTime.now())
             .build();
 
         Long relatedHistoryKey = 1L;
 
-        PointHistoryEvent event = new PointHistoryEvent(point, 1000, PointHistoryActionType.SAVE_CANCEL, relatedHistoryKey, null);
+        PointHistoryEvent event = PointHistoryEvent.saveCancel(point.getPointKey(), 1000, 1L);
 
         // when
         pointHistoryListener.listen(event);
@@ -103,13 +102,13 @@ class PointHistoryListenerTest {
             .rewardType(PointRewardType.MANUAL)
             .totalAmount(1000)
             .remainAmount(400)
-            .expiredDate(LocalDateTime.now().plusDays(30))
+            .expiredAt(LocalDateTime.now().plusDays(30))
             .createdAt(LocalDateTime.now())
             .build();
 
         Long orderKey = 1234L;
 
-        PointHistoryEvent event = new PointHistoryEvent(point, 600, PointHistoryActionType.USE, null, orderKey);
+        PointHistoryEvent event = PointHistoryEvent.use(point.getPointKey(), 600, orderKey);
 
         // when
         pointHistoryListener.listen(event);
@@ -136,14 +135,14 @@ class PointHistoryListenerTest {
             .rewardType(PointRewardType.MANUAL)
             .totalAmount(1000)
             .remainAmount(1000)
-            .expiredDate(LocalDateTime.now().plusDays(30))
+            .expiredAt(LocalDateTime.now().plusDays(30))
             .createdAt(LocalDateTime.now())
             .build();
 
         Long orderKey = 1234L;
         Long relatedHistoryKey = 1L;
 
-        PointHistoryEvent event = new PointHistoryEvent(point, 600, PointHistoryActionType.USE_CANCEL, relatedHistoryKey, orderKey);
+        PointHistoryEvent event = PointHistoryEvent.useCancel(point.getPointKey(), 600, relatedHistoryKey, orderKey);
 
         // when
         pointHistoryListener.listen(event);
@@ -171,11 +170,11 @@ class PointHistoryListenerTest {
             .rewardType(PointRewardType.MANUAL)
             .totalAmount(1000)
             .remainAmount(200)
-            .expiredDate(LocalDateTime.now().minusDays(1))
+            .expiredAt(LocalDateTime.now().minusDays(1))
             .createdAt(LocalDateTime.now().minusDays(31))
             .build();
 
-        PointHistoryEvent event = new PointHistoryEvent(point, 200, PointHistoryActionType.EXPIRED, null, null);
+        PointHistoryEvent event = PointHistoryEvent.expired(point.getPointKey(), point.getRemainAmount());
 
         // when
         pointHistoryListener.listen(event);

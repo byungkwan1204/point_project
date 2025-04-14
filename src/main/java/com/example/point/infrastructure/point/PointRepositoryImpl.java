@@ -1,9 +1,6 @@
-package com.example.point.infrastructure.repository;
-
-import static java.util.stream.Collectors.toList;
+package com.example.point.infrastructure.point;
 
 import com.example.point.domain.model.Point;
-import com.example.point.infrastructure.entity.PointEntity;
 import com.example.point.service.port.PointRepository;
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +24,7 @@ public class PointRepositoryImpl implements PointRepository {
     public List<Point> findUsablePointsByUserKey(Long userKey) {
         return jpaRepository.findUsablePointsByUserKey(userKey).stream()
             .map(PointEntity::toDomain)
-            .toList();
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -36,5 +33,17 @@ public class PointRepositoryImpl implements PointRepository {
         PointEntity savedPoint = jpaRepository.save(PointEntity.fromDomain(point));
 
         return savedPoint.toDomain();
+    }
+
+    @Override
+    public List<Point> findAll() {
+        return jpaRepository.findAll().stream()
+            .map(PointEntity::toDomain)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteAll() {
+        jpaRepository.deleteAll();
     }
 }

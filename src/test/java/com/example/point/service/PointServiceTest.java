@@ -16,9 +16,9 @@ import com.example.point.domain.model.PointStatus;
 import com.example.point.presentation.request.PointCreateRequest;
 import com.example.point.presentation.request.PointUseCancelRequest;
 import com.example.point.presentation.request.PointUseRequest;
+import com.example.point.presentation.response.PointResponse;
 import com.example.point.service.port.PointHistoryRepository;
 import com.example.point.service.port.PointRepository;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,36 +55,37 @@ class PointServiceTest {
 
     @DisplayName("포인트를 적립 할 수 있다.")
     @Test
-    void canCreateByManual() {
+    void canCreateByManual() throws Exception {
 
         // given
-        LocalDateTime expiredDate = LocalDateTime.now().plusDays(30);
+        LocalDateTime expiredAt = LocalDateTime.now().plusDays(30);
 
         Point newPoint =
-            createPoint(1L, PointRewardType.MANUAL, 1000, expiredDate);
+            createPoint(1L, PointRewardType.MANUAL, 1000, expiredAt);
 
-        PointCreateRequest request = new PointCreateRequest(1L, 1000, expiredDate, PointRewardType.MANUAL);
+        PointCreateRequest request = new PointCreateRequest(1L, 1000, expiredAt, PointRewardType.MANUAL);
 
-        given(pointRepository.save(any(Point.class))).willReturn(newPoint);
+        given(pointRepository.save(any())).willReturn(newPoint);
+
         ReflectionTestUtils.setField(newPoint, "pointKey", 1L);
 
         // when
-        Point savePoint = pointService.savePoint(request);
+        PointResponse savePoint = pointService.savePoint(request);
 
         // then
-        assertThat(savePoint.getPointKey()).isEqualTo(1L);
-        assertThat(savePoint.getUserKey()).isEqualTo(1L);
-        assertThat(savePoint.getRewardType()).isEqualTo(PointRewardType.MANUAL);
-        assertThat(savePoint.getStatus()).isEqualTo(PointStatus.ACTIVE);
-        assertThat(savePoint.getTotalAmount()).isEqualTo(1000);
-        assertThat(savePoint.getExpiredDate()).isEqualTo(expiredDate);
+        assertThat(savePoint.pointKey()).isEqualTo(1L);
+        assertThat(savePoint.userKey()).isEqualTo(1L);
+        assertThat(savePoint.rewardType()).isEqualTo(PointRewardType.MANUAL);
+        assertThat(savePoint.status()).isEqualTo(PointStatus.ACTIVE);
+        assertThat(savePoint.totalAmount()).isEqualTo(1000);
+        assertThat(savePoint.expiredAt()).isEqualTo(expiredAt);
 
         verify(eventPublisher).publishEvent(captor.capture());
     }
 
     @DisplayName("적립된 포인트를 취소할 수 있다.")
     @Test
-    void canCancel() {
+    void canCancel() throws Exception {
 
         // given
         Point point =
@@ -99,26 +100,25 @@ class PointServiceTest {
             .rewardType(point.getRewardType())
             .totalAmount(point.getTotalAmount())
             .remainAmount(0)
-            .expiredDate(point.getExpiredDate())
+            .expiredAt(point.getExpiredAt())
             .build();
 
-        given(pointHistoryRepository.findSaveByPointKey(anyLong())).willReturn(Optional.ofNullable(pointHistory));
+        given(pointHistoryRepository.findSavedByPointKey(anyLong())).willReturn(Optional.ofNullable(pointHistory));
         given(pointRepository.save(any())).willReturn(cPoint);
 
         // when
-        Point cancelPoint = pointService.cancelSavePoint(1L);
+        PointResponse cancelPoint = pointService.saveCancelPoint(1L);
 
         // then
-        assertThat(cancelPoint.getStatus()).isEqualTo(PointStatus.CANCELED);
-        assertThat(cancelPoint.getRemainAmount()).isZero();
-        assertThat(cancelPoint.isCanceled()).isTrue();
+        assertThat(cancelPoint.status()).isEqualTo(PointStatus.CANCELED);
+        assertThat(cancelPoint.remainAmount()).isZero();
 
         verify(eventPublisher).publishEvent(captor.capture());
     }
 
     @DisplayName("포인트를 사용할 수 있다.")
     @Test
-    void canUsePoint() {
+    void canUsePoint()  throws Exception {
 
         // given
         Point point =
@@ -133,21 +133,21 @@ class PointServiceTest {
             .willReturn(points);
 
         // when
-        List<Point> usePoints =  pointService.usePoint(useRequest);
+        List<PointResponse> usePoints =  pointService.usePoint(useRequest);
 
         // then
         assertThat(usePoints).hasSize(1);
         assertThat(usePoints)
-            .extracting(Point::getUserKey).containsExactly(1L);
+            .extracting(PointResponse::userKey).containsExactly(1L);
         assertThat(usePoints)
-            .extracting(Point::getRemainAmount).containsExactly(400);
+            .extracting(PointResponse::remainAmount).containsExactly(400);
 
         verify(eventPublisher).publishEvent(captor.capture());
     }
 
     @DisplayName("여러개의 포인트가 있을 경우 수기 지급 포인트를 우선으로 사용하고, 만료일이 짧은 순서로 사용된다.")
     @Test
-    void canUseOfPriority() {
+    void canUseOfPriority() throws Exception {
 
         // given
         Point firstUsePoint =
@@ -170,19 +170,19 @@ class PointServiceTest {
         given(pointRepository.findUsablePointsByUserKey(anyLong())).willReturn(points);
 
         // when
-        List<Point> usePoints = pointService.usePoint(useRequest);
+        List<PointResponse> usePoints = pointService.usePoint(useRequest);
 
         // then
         assertThat(usePoints).hasSize(3);
         assertThat(usePoints)
-            .extracting(Point::getRemainAmount).containsExactly(0,0,200);
+            .extracting(PointResponse::remainAmount).containsExactly(0,0,200);
 
         verify(eventPublisher, times(3)).publishEvent(captor.capture());
     }
 
     @DisplayName("사용한 포인트를 취소 시, 만료되지 않았다면 복원된다.")
     @Test
-    void canUseCancel() {
+    void canUseCancel() throws Exception {
 
         // given
         Point usePoint =
@@ -198,22 +198,22 @@ class PointServiceTest {
 
         PointUseCancelRequest useCancelRequest = new PointUseCancelRequest(1L, 1234L);
 
-        given(pointHistoryRepository.findAllUsageByOrderKey(any())).willReturn(pointHistories);
+        given(pointHistoryRepository.findAllUsedByOrderKey(any())).willReturn(pointHistories);
 
         // when
-        List<Point> cancelPoints = pointService.cancelUsePoint(useCancelRequest);
+        List<PointResponse> cancelPoints = pointService.useCancelPoint(useCancelRequest);
 
         // then
         assertThat(cancelPoints).hasSize(1);
         assertThat(cancelPoints)
-            .extracting(Point::getRemainAmount).containsExactly(1000);
+            .extracting(PointResponse::remainAmount).containsExactly(1000);
 
         verify(eventPublisher).publishEvent(captor.capture());
     }
 
     @DisplayName("사용한 포인트를 취소 시, 만료된 포인트는 복원하지 않고 새로 적립 한다.")
     @Test
-    void recreatePointWhenUseCancelExpiredPoint() {
+    void recreatePointWhenUseCancelExpiredPoint() throws Exception {
 
         // given
         Point expiredPoint = Point.builder()
@@ -223,7 +223,7 @@ class PointServiceTest {
             .rewardType(PointRewardType.MANUAL)
             .totalAmount(1000)
             .remainAmount(0)
-            .expiredDate(LocalDateTime.now().minusDays(1))
+            .expiredAt(LocalDateTime.now().minusDays(1))
             .createdAt(LocalDateTime.now().minusDays(31))
             .build();
 
@@ -233,7 +233,7 @@ class PointServiceTest {
             .rewardType(PointRewardType.MANUAL)
             .totalAmount(1000)
             .remainAmount(1000)
-            .expiredDate(LocalDateTime.now().plusDays(365))
+            .expiredAt(LocalDateTime.now().plusDays(365))
             .createdAt(LocalDateTime.now())
             .build();
 
@@ -245,7 +245,7 @@ class PointServiceTest {
         List<PointHistory> pointHistories = new ArrayList<>();
         pointHistories.add(expiredPointHistory);
 
-        given(pointHistoryRepository.findAllUsageByOrderKey(any())).willReturn(pointHistories);
+        given(pointHistoryRepository.findAllUsedByOrderKey(any())).willReturn(pointHistories);
         given(pointRepository.save(any())).willReturn(activePoint);
 
         ReflectionTestUtils.setField(activePoint, "pointKey", 2L);
@@ -253,18 +253,18 @@ class PointServiceTest {
         PointUseCancelRequest request = new PointUseCancelRequest(1L, 1234L);
 
         // when
-        List<Point> cancelPoints = pointService.cancelUsePoint(request);
+        List<PointResponse> cancelPoints = pointService.useCancelPoint(request);
 
         // then
         assertThat(cancelPoints).hasSize(1);
-        assertThat(cancelPoints).extracting(Point::getPointKey, Point::getRemainAmount)
+        assertThat(cancelPoints).extracting(PointResponse::pointKey, PointResponse::remainAmount)
             .containsExactlyInAnyOrder(
                 Tuple.tuple(2L, 1000));
 
         verify(eventPublisher, times(2)).publishEvent(captor.capture());
     }
 
-    private Point createPoint(Long pointKey, PointRewardType rewardType, int amount, LocalDateTime expiredDate) {
+    private Point createPoint(Long pointKey, PointRewardType rewardType, int amount, LocalDateTime expiredAt) {
         return Point.builder()
             .pointKey(pointKey)
             .userKey(1L)
@@ -272,7 +272,7 @@ class PointServiceTest {
             .rewardType(rewardType)
             .totalAmount(amount)
             .remainAmount(amount)
-            .expiredDate(expiredDate)
+            .expiredAt(expiredAt)
             .build();
     }
 }

@@ -6,9 +6,10 @@ import java.util.Optional;
 
 public interface PointHistoryRepository {
 
-    List<PointHistory> findAllUsageByOrderKey(Long orderKey);
+    List<PointHistory> findAllUsedByOrderKey(Long orderKey);
 
-    Optional<PointHistory> findSaveByPointKey(Long pointKey);
+    Optional<PointHistory> findSavedByPointKey(Long pointKey);
 
     PointHistory save(PointHistory pointHistory);
+
 }

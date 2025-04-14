@@ -1,9 +1,12 @@
-package com.example.point.infrastructure.entity;
+package com.example.point.infrastructure.pointhistory;
 
 import com.example.point.domain.model.PointHistory;
 import com.example.point.domain.model.PointHistoryActionType;
+import com.example.point.infrastructure.point.PointEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -39,6 +42,7 @@ public class PointHistoryEntity {
 
     private Long relatedHistoryKey;
 
+    @Enumerated(EnumType.STRING)
     private PointHistoryActionType actionType;
 
     private int amount;
@@ -50,6 +54,7 @@ public class PointHistoryEntity {
 
     public static PointHistoryEntity fromDomain(PointHistory pointHistory) {
         return PointHistoryEntity.builder()
+            .historyKey(pointHistory.getHistoryKey())
             .point(PointEntity.fromDomain(pointHistory.getPoint()))
             .relatedHistoryKey(pointHistory.getRelatedHistoryKey())
             .actionType(pointHistory.getActionType())

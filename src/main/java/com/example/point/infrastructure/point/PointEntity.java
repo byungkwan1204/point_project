@@ -1,8 +1,8 @@
-package com.example.point.infrastructure.entity;
+package com.example.point.infrastructure.point;
 
 import com.example.point.domain.model.Point;
-import com.example.point.domain.model.PointStatus;
 import com.example.point.domain.model.PointRewardType;
+import com.example.point.domain.model.PointStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
@@ -43,19 +43,20 @@ public class PointEntity {
 
     private int remainAmount;
 
-    private LocalDateTime expiredDate;
+    private LocalDateTime expiredAt;
 
     @CreatedDate
     private LocalDateTime createdAt;
 
     public static PointEntity fromDomain(Point point) {
         return PointEntity.builder()
+            .pointKey(point.getPointKey())
             .userKey(point.getUserKey())
             .status(point.getStatus())
             .rewardType(point.getRewardType())
             .totalAmount(point.getTotalAmount())
             .remainAmount(point.getRemainAmount())
-            .expiredDate(point.getExpiredDate())
+            .expiredAt(point.getExpiredAt())
             .build();
     }
 
@@ -67,7 +68,7 @@ public class PointEntity {
             .rewardType(this.rewardType)
             .totalAmount(this.totalAmount)
             .remainAmount(this.remainAmount)
-            .expiredDate(this.expiredDate)
+            .expiredAt(this.expiredAt)
             .createdAt(this.createdAt)
             .build();
     }
